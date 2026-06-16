@@ -1,4 +1,10 @@
-# SignBridge — Real-Time ISL Translator
+# SignBridge-Real-Time-ISL-Translator-with-Edge-Deployment
+![Python](https://img.shields.io/badge/Python-3.11-blue)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.12-orange)
+![MediaPipe](https://img.shields.io/badge/MediaPipe-0.10.35-green)
+![ONNX](https://img.shields.io/badge/ONNX-FP32%20353FPS-purple)
+![Accuracy](https://img.shields.io/badge/Test%20Accuracy-100%25-brightgreen)
+![License](https://img.shields.io/badge/License-MIT-yellow)
 
 Production-grade Indian Sign Language (ISL) alphabet recognition system
 using CNN-LSTM temporal modeling, MediaPipe hand landmarks, and ONNX INT8
