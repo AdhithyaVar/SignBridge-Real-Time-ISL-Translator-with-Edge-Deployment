@@ -101,7 +101,7 @@ python scripts/run_demo.py
 ## Project Structure
 
 ```
-PROJECT/
+SignBridge — Real-Time ISL Translator with Edge Deployment/
 ├── configs/
 │   ├── dataset.yaml          # 26 ISL classes, recording params, splits
 │   ├── model.yaml            # CNN-LSTM architecture hyperparameters
