@@ -1,0 +1,116 @@
+# =============================================================================
+# training.yaml — Training pipeline configuration
+# =============================================================================
+
+# ---------------------------
+# Hardware
+# ---------------------------
+hardware:
+  device:             "auto"      # auto | cuda | cpu
+  gpu_id:             0           # CUDA device index if multiple GPUs
+  num_workers:        4           # DataLoader worker processes
+  pin_memory:         true        # Faster GPU transfers (ignored on CPU)
+  mixed_precision:    true        # AMP (FP16) training on GPU, ignored on CPU
+
+# ---------------------------
+# Training loop
+# ---------------------------
+training:
+  epochs:             150
+  batch_size:         64          # Reduce to 32 if GPU OOM
+  val_batch_size:     128
+  shuffle_train:      true
+  seed:               42
+
+# ---------------------------
+# Optimizer
+# ---------------------------
+optimizer:
+  name:               "AdamW"     # AdamW = Adam + decoupled weight decay
+  lr:                 0.001       # Initial learning rate
+  betas:              [0.9, 0.999]
+  eps:                1.0e-8
+  weight_decay:       0.0001      # Must match model.yaml regularization
+
+# ---------------------------
+# Learning rate scheduler
+# ---------------------------
+scheduler:
+  name:               "CosineAnnealingWarmRestarts"
+  T_0:                30          # First restart period (epochs)
+  T_mult:             2           # Period doubling factor
+  eta_min:            1.0e-6      # Minimum LR
+  warmup_epochs:      5           # Linear warmup at training start
+  warmup_start_lr:    1.0e-5
+
+# ---------------------------
+# Loss function
+# ---------------------------
+loss:
+  name:               "CrossEntropyLoss"
+  label_smoothing:    0.1         # Must match model.yaml
+  # class_weights: not implemented in trainer.py (dataset is perfectly
+  # balanced at 375 samples/class so weights are not needed).
+  class_weights:      null
+
+# ---------------------------
+# Early stopping (anti-overfitting)
+# ---------------------------
+early_stopping:
+  enabled:            true
+  monitor:            "val_accuracy"
+  mode:               "max"
+  patience:           20          # Epochs with no improvement before stop
+  min_delta:          0.001       # Minimum improvement to reset patience
+  restore_best:       true        # Restore best weights on stop
+
+# ---------------------------
+# Checkpoint management
+# ---------------------------
+checkpoints:
+  save_dir:           "models/checkpoints"
+  best_dir:           "models/best"
+  save_every_n_epochs: 5
+  keep_last_n:         3          # Delete old checkpoints, keep N most recent
+  monitor:            "val_accuracy"
+  mode:               "max"
+  filename_template:  "epoch_{epoch:03d}_val{val_accuracy:.4f}.pth"
+  best_filename:      "best_model.pth"
+
+# ---------------------------
+# Logging
+# ---------------------------
+logging:
+  log_dir:            "logs"
+  tensorboard:        true
+  csv_log:            true
+  csv_filename:       "training_log.csv"
+  log_every_n_steps:  10
+  print_every_n_epochs: 1
+
+# ---------------------------
+# Evaluation during training
+# ---------------------------
+evaluation:
+  eval_every_n_epochs: 1          # Run validation every epoch
+  compute_confusion_matrix: true  # At end of training only (slow)
+  top_k_accuracy:     [1, 3]      # Compute top-1 and top-3 accuracy
+
+# ---------------------------
+# Overfitting diagnostics
+# ---------------------------
+diagnostics:
+  overfitting_threshold: 0.05     # Alert if val_loss - train_loss > threshold
+  underfitting_threshold: 0.50    # Alert if train_accuracy < threshold at epoch 10
+  gradient_norm_log: true         # Log gradient norms per batch
+
+# ---------------------------
+# ONNX export (post-training)
+# ---------------------------
+export:
+  onnx_dir:           "models/onnx"
+  quantized_dir:      "models/quantized"
+  opset_version:      14
+  dynamic_axes:       true        # Allow variable batch sizes
+  calibration_samples: 500        # Samples for INT8 calibration
+  int8_quantize:      true

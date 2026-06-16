@@ -1,0 +1,97 @@
+# =============================================================================
+# model.yaml — CNN-LSTM model architecture hyperparameters
+# =============================================================================
+
+# ---------------------------
+# Input dimensions
+# ---------------------------
+input:
+  sequence_length:    30          # Temporal window (frames)
+  feature_dim:        126         # Max feature size (2-hand = 126, 1-hand padded to 126)
+  single_hand_dim:    63          # Used for single-hand-only classes
+
+# ---------------------------
+# CNN feature extractor (per-frame spatial)
+# ---------------------------
+cnn:
+  conv_layers:
+    - out_channels: 64
+      kernel_size:  3
+      padding:      1
+      activation:   "relu"
+      batch_norm:   true
+      dropout:      0.0
+    - out_channels: 128
+      kernel_size:  3
+      padding:      1
+      activation:   "relu"
+      batch_norm:   true
+      dropout:      0.1
+    - out_channels: 256
+      kernel_size:  3
+      padding:      1
+      activation:   "relu"
+      batch_norm:   true
+      dropout:      0.1
+  pool_type:          "adaptive"  # AdaptiveAvgPool1d output size = 1
+  cnn_output_dim:     256
+
+# ---------------------------
+# LSTM temporal encoder
+# ---------------------------
+lstm:
+  hidden_size:        256
+  num_layers:         2
+  bidirectional:      true        # BiLSTM doubles effective hidden size
+  dropout:            0.3         # Applied between LSTM layers
+  effective_dim:      512         # hidden_size * 2 (bidirectional)
+
+# ---------------------------
+# Temporal attention module
+# ---------------------------
+attention:
+  enabled:            true
+  attention_dim:      128         # Projection dimension for query/key
+  num_heads:          4           # Multi-head attention
+  dropout:            0.1
+
+# ---------------------------
+# Classifier head
+# ---------------------------
+classifier:
+  hidden_layers:
+    - dim:      256
+      activation: "relu"
+      dropout:    0.4
+      batch_norm: true
+    - dim:      128
+      activation: "relu"
+      dropout:    0.3
+      batch_norm: false
+  output_dim:         26          # num_classes (26 ISL alphabet letters)
+  final_activation:   "softmax"   # For inference; use CrossEntropyLoss (logits) during training
+
+# ---------------------------
+# Regularization (anti-overfitting)
+# ---------------------------
+regularization:
+  weight_decay:       0.0001      # L2 regularization in optimizer
+  label_smoothing:    0.1         # Smoothed CrossEntropyLoss
+  mixup_alpha:        0.2         # Mixup augmentation (0.0 = disabled)
+  gradient_clip:      1.0         # Max gradient norm for clipping
+
+# ---------------------------
+# Model initialization
+# ---------------------------
+initialization:
+  method:             "kaiming_normal"   # For Conv layers
+  lstm_init:          "orthogonal"       # For LSTM weights
+  bias_init:          0.0
+
+# ---------------------------
+# Model summary targets
+# ---------------------------
+target_metrics:
+  parameters:         "~2M"       # Target parameter count
+  flops_per_frame:    "~50M"      # Target FLOP budget
+  memory_mb:          "~50"       # Target memory footprint at inference

@@ -1,0 +1,141 @@
+# =============================================================================
+# dataset.yaml — Dataset configuration for SignBridge ISL recognition system
+# Scope: 26 ISL alphabet letters only (A-Z)
+# =============================================================================
+
+# ---------------------------
+# Paths (relative to PROJECT root)
+# ---------------------------
+paths:
+  raw_data:       "data/raw"
+  processed_data: "data/processed"
+  augmented_data: "data/augmented"
+  splits_dir:     "data/splits"
+
+# ---------------------------
+# Recording parameters
+# ---------------------------
+recording:
+  camera_index:      0           # Webcam device index (0 = default)
+  capture_fps:       30          # Target capture FPS
+  sequence_length:   30          # Frames per sequence (temporal window)
+  num_sequences:     100         # Sequences to record per class per session
+  countdown_seconds: 3           # Countdown before recording starts
+  hold_frames:       10          # Stable-detection frames before auto-record
+
+# ---------------------------
+# Hand detection
+# ---------------------------
+hand_detection:
+  min_detection_confidence: 0.75
+  min_tracking_confidence:  0.75
+  max_num_hands:            2     # Support both 1-hand and 2-hand signs
+
+  # Based on ISL alphabet image — verified by user
+  single_hand_classes:           # Letters signed with exactly ONE hand
+    - C
+    - I
+    - L
+    - O
+    - U
+    - V
+
+  two_hand_classes:              # Letters signed with BOTH hands
+    - A
+    - B
+    - D
+    - E
+    - F
+    - G
+    - H
+    - J
+    - K
+    - M
+    - N
+    - P
+    - Q
+    - R
+    - S
+    - T
+    - W
+    - X
+    - Y
+    - Z
+
+# ---------------------------
+# Class registry — 26 ISL alphabet classes only
+# ---------------------------
+classes:
+  alphabets:
+    - A
+    - B
+    - C
+    - D
+    - E
+    - F
+    - G
+    - H
+    - I
+    - J
+    - K
+    - L
+    - M
+    - N
+    - O
+    - P
+    - Q
+    - R
+    - S
+    - T
+    - U
+    - V
+    - W
+    - X
+    - Y
+    - Z
+
+num_classes: 26
+
+# ---------------------------
+# Feature engineering
+# ---------------------------
+features:
+  landmarks_per_hand:    21       # MediaPipe Hands keypoints
+  coords_per_landmark:   3        # x, y, z
+  single_hand_features:  63       # 21 * 3
+  two_hand_features:     126      # 21 * 3 * 2 (padded with zeros if 1 hand)
+  normalization: "wrist_relative" # Options: wrist_relative | min_max | z_score
+
+# ---------------------------
+# Dataset split ratios
+# ---------------------------
+splits:
+  train: 0.75
+  val:   0.15
+  test:  0.10
+  random_seed: 42
+  stratify: true                  # Preserve class balance across splits
+
+# ---------------------------
+# Augmentation settings
+# ---------------------------
+augmentation:
+  enabled: true
+  per_sample_copies: 4            # Generate 4 augmented copies per raw sample
+  rotation_range:    15           # Degrees +/- for wrist rotation
+  scale_range:       0.15         # Scale factor +/- (0.85x to 1.15x)
+  translation_range: 0.05         # Shift as fraction of bounding box
+  gaussian_noise_std: 0.005       # Coordinate noise std (normalized units)
+  time_warp:         true         # Random temporal stretching/compression
+  mirror:            true         # Horizontal flip (only for symmetric signs)
+  mirror_classes:                 # Letters where horizontal mirroring is safe
+    - C
+    - I
+    - L
+    - O
+    - U
+    - V
+    - B
+    - M
+    - N
+    - W

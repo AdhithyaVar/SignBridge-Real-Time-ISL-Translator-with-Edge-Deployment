@@ -1,0 +1,67 @@
+# =============================================================================
+# .gitignore — SignBridge project
+# =============================================================================
+
+# Data (large files — use DVC or store separately)
+data/raw/
+data/processed/
+data/augmented/
+data/splits/
+!data/**/.gitkeep
+
+# Model artifacts (large binary files)
+models/checkpoints/
+models/best/
+models/onnx/
+models/quantized/
+!models/**/.gitkeep
+
+# Logs and reports
+logs/
+reports/
+!logs/.gitkeep
+!reports/.gitkeep
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.Python
+
+# Virtual environments
+venv/
+.venv/
+env/
+ENV/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+
+# Misc
+*.log
+*.tmp
+*.bak

@@ -1,0 +1,122 @@
+# =============================================================================
+# finetune.yaml — Fine-tuning configuration for SignBridge CNN-LSTM
+# =============================================================================
+
+# ---------------------------
+# Base model to fine-tune
+# ---------------------------
+base_model:
+  checkpoint:    "models/best/best_model.pth"
+  freeze_cnn:    true    # CNN learned universal spatial features — keep frozen
+  freeze_lstm:   true    # Start frozen; unfrozen in Stage 3
+  freeze_attn:   true    # Start frozen; unfrozen in Stage 2
+
+# ---------------------------
+# Progressive unfreezing stages
+# Each stage unfreezes more layers and uses lower LR
+# ---------------------------
+stages:
+
+  stage1:
+    name:           "Classifier only"
+    description:    "Adapt decision boundaries to new data distribution"
+    epochs:         20
+    lr:             1.0e-4
+    unfreeze:       ["classifier"]
+    batch_size:     32
+    dropout_scale:  1.0     # keep original dropout
+
+  stage2:
+    name:           "Attention + Classifier"
+    description:    "Adapt temporal focus (which frames matter)"
+    epochs:         20
+    lr:             5.0e-5
+    unfreeze:       ["attention", "classifier"]
+    batch_size:     32
+    dropout_scale:  1.0
+
+  stage3:
+    name:           "LSTM + Attention + Classifier"
+    description:    "Adapt temporal sequence modelling"
+    epochs:         20
+    lr:             2.0e-5
+    unfreeze:       ["lstm", "attention", "classifier"]
+    batch_size:     32
+    dropout_scale:  1.2     # slightly stronger regularisation
+
+  stage4:
+    name:           "Full model fine-tune"
+    description:    "Global adaptation with very low LR"
+    epochs:         30
+    lr:             1.0e-5
+    unfreeze:       ["cnn", "lstm", "attention", "classifier"]
+    batch_size:     32
+    dropout_scale:  1.5     # strongest regularisation to prevent forgetting
+
+# ---------------------------
+# Optimizer (all stages use AdamW with stage-specific LR)
+# ---------------------------
+optimizer:
+  name:          "AdamW"
+  weight_decay:  0.0005   # higher than training (1e-4) to prevent overfitting
+
+# ---------------------------
+# Loss
+# ---------------------------
+loss:
+  label_smoothing:     0.15    # higher than training (0.1) — smoother decisions
+
+# ---------------------------
+# Hard example mining
+# Classes where the model made errors (from evaluation_summary.json)
+# ---------------------------
+hard_mining:
+  enabled:             true
+  hard_classes:        ["S", "M", "N"]   # observed confused pairs
+  hard_class_weight:   2.5               # up-weight hard class samples in loss
+  extra_aug_copies:    4                 # additional augmented copies for hard classes
+
+# ---------------------------
+# Augmentation (stronger than training for more diversity)
+# ---------------------------
+augmentation:
+  rotation_range:      20.0    # ±20° (training used ±15°)
+  scale_range:         0.20    # ±20% (training used ±15%)
+  translation_range:   0.08    # ±8% (training used ±5%)
+  gaussian_noise_std:  0.008   # higher noise
+  time_warp_range:     0.25    # ±25% speed variation
+  time_warp_prob:      0.80    # more frequent
+  per_sample_copies:   6       # more augmentation (training used 4)
+
+# ---------------------------
+# Early stopping per stage
+# ---------------------------
+early_stopping:
+  patience:      10            # shorter than training (20) for faster iteration
+  min_delta:     0.001
+  mode:          "max"
+  monitor:       "val_accuracy"
+  restore_best:  true
+
+# ---------------------------
+# Checkpointing
+# ---------------------------
+checkpoints:
+  save_dir:      "models/finetune_checkpoints"
+  best_dir:      "models/finetuned"
+  best_filename: "finetuned_model.pth"
+
+# ---------------------------
+# Hardware
+# ---------------------------
+hardware:
+  device:        "auto"
+  mixed_precision: true        # AMP on GPU
+
+# ---------------------------
+# Logging
+# ---------------------------
+logging:
+  log_dir:       "logs/finetune"
+  csv_filename:  "finetune_log.csv"
+  tensorboard:   true

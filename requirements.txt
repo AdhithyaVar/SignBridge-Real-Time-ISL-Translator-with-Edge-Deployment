@@ -1,0 +1,47 @@
+# =============================================================================
+# requirements.txt — Production dependencies
+# Install: pip install -r requirements.txt
+# =============================================================================
+
+# --- Core ML framework ---
+torch>=2.1.0
+torchvision>=0.16.0
+torchaudio>=2.1.0
+
+# --- Computer vision ---
+opencv-python>=4.8.0
+# mediapipe 0.10.x+ removed mp.solutions entirely.
+# hand_detector.py uses mp.tasks.vision.HandLandmarker (Tasks API).
+# hand_landmarker.task model is auto-downloaded on first run (~30 MB).
+mediapipe>=0.10.7
+
+# --- ONNX inference stack ---
+onnx>=1.15.0
+onnxruntime>=1.16.0          # CPU runtime (always installed)
+onnxscript>=0.1.0            # Required by PyTorch 2.x ONNX export API
+# onnxruntime-gpu>=1.16.0    # GPU runtime — uncomment if CUDA available
+
+# --- Scientific computing ---
+numpy>=1.24.0
+scipy>=1.11.0
+scikit-learn>=1.3.0
+
+# --- Data handling ---
+pandas>=2.0.0
+PyYAML>=6.0.1
+
+# --- Audio / TTS ---
+pyttsx3>=2.90
+
+# --- Visualization ---
+matplotlib>=3.7.0
+seaborn>=0.12.0
+Pillow>=10.0.0
+
+# --- Logging and progress ---
+tqdm>=4.65.0
+tensorboard>=2.14.0
+colorlog>=6.7.0
+
+# --- Utilities ---
+psutil>=5.9.0               # Memory / CPU monitoring

@@ -1,0 +1,61 @@
+version: "3.9"
+
+services:
+
+  # -----------------------------------------------------------------------
+  # collect: interactive data collection (requires webcam device passthrough)
+  # Usage: docker-compose run --rm collect
+  # -----------------------------------------------------------------------
+  collect:
+    build: .
+    command: python scripts/collect_data.py
+    volumes:
+      - ./data:/app/data
+      - ./configs:/app/configs
+    devices:
+      - /dev/video0:/dev/video0
+    environment:
+      - DISPLAY=${DISPLAY}
+    network_mode: host
+
+  # -----------------------------------------------------------------------
+  # train: model training (CPU mode inside container)
+  # Usage: docker-compose run --rm train
+  # -----------------------------------------------------------------------
+  train:
+    build: .
+    command: python scripts/train.py
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./logs:/app/logs
+      - ./configs:/app/configs
+
+  # -----------------------------------------------------------------------
+  # evaluate: run test-set evaluation and generate reports
+  # Usage: docker-compose run --rm evaluate
+  # -----------------------------------------------------------------------
+  evaluate:
+    build: .
+    command: python scripts/evaluate.py
+    volumes:
+      - ./data:/app/data
+      - ./models:/app/models
+      - ./reports:/app/reports
+      - ./configs:/app/configs
+
+  # -----------------------------------------------------------------------
+  # demo: real-time inference demo (requires webcam device passthrough)
+  # Usage: docker-compose run --rm demo
+  # -----------------------------------------------------------------------
+  demo:
+    build: .
+    command: python scripts/run_demo.py
+    volumes:
+      - ./models:/app/models
+      - ./configs:/app/configs
+    devices:
+      - /dev/video0:/dev/video0
+    environment:
+      - DISPLAY=${DISPLAY}
+    network_mode: host
